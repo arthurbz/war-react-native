@@ -1,41 +1,83 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import DiceHistory from '../components/DiceHistory';
 import DiceRoller from '../components/DiceRoller';
 
 function MainScreen() {
-    const [currentNumber, setCurrentNumber] = useState(1)
-    const [history, setHistory] = useState([])
+    const [attackCurrentNumber, setAttackCurrentNumber] = useState(rollDice())
+    const [defenseCurrentNumber, setDefenseCurrentNumber] = useState(rollDice())
+    const [attackHistory] = useState([])
+    const [defenseHistory] = useState([])
 
     useEffect(() => {
-    }, [currentNumber])
+    }, [attackCurrentNumber, defenseCurrentNumber])
 
-    function rollDice() {
-        const number = Math.ceil(Math.random() * 6)
-        setCurrentNumber(number)
+    function rollDice(): number {
+        return Math.ceil(Math.random() * 6)
+    }
 
-        if (history.length == 3)
-            history.splice(0, 1)
-        history.push(number)
+    function rollDiceAttack() {
+        const number = rollDice()
+        setAttackCurrentNumber(number)
 
-        console.log("Current Number: ", currentNumber)
+        if (attackHistory.length == 3)
+            attackHistory.splice(0, 1)
+
+        attackHistory.push(number)
+    }
+
+    function rollDiceDenfese() {
+        const number = rollDice()
+        setDefenseCurrentNumber(number)
+
+        if (defenseHistory.length == 3)
+            defenseHistory.splice(0, 1)
+
+        defenseHistory.push(number)
     }
 
     return (
-        <View style={styles.container}>
-            <DiceHistory history={history}/>
-            <DiceRoller currentNumber={currentNumber} onPress={rollDice} />
+        <View style={{
+            flex: 1,
+            backgroundColor: '#fff',
+            alignItems: 'center',
+        }}>
+            <View style={styles.main}>
+                <View style={styles.container}>
+                    <Text style={styles.title}>ATTACK</Text>
+                    <DiceHistory history={attackHistory} />
+                    <DiceRoller currentNumber={attackCurrentNumber} onPress={rollDiceAttack} />
+                </View>
+
+                <View style={styles.container}>
+                    <Text style={styles.title}>DEFENSE</Text>
+                    <DiceHistory history={defenseHistory} />
+                    <DiceRoller currentNumber={defenseCurrentNumber} onPress={rollDiceDenfese} />
+                </View>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    main: {
+        flex: 1,
+        flexDirection: "row",
+    },
+    greyScale: {
+        backgroundColor: "grey"
+    },
     container: {
         flex: 1,
         backgroundColor: '#fff',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-around',
+        width: "50%"
     },
+    title: {
+        fontSize: 25,
+        fontWeight: "bold"
+    }
 });
 
 export default MainScreen 
