@@ -1,10 +1,10 @@
-import { View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import Dice from './Dice';
 
 function DiceHistory({ history }: { history: number[] }) {
     return (
         <View>
-            <Text>History</Text>
+            <Text style={styles.text}>History</Text>
             <View style={{ flexDirection: "row" }}>
                 {history.map((number, index) => {
                     return (
@@ -17,5 +17,12 @@ function DiceHistory({ history }: { history: number[] }) {
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    text: {
+        textAlign: "center",
+        fontWeight: "bold"
+    }
+})
 
 export default DiceHistory
