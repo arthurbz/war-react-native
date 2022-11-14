@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { useEffect, useState, useRef } from 'react';
+import { Animated, Easing, StyleSheet, View, Text } from 'react-native';
 import DiceHistory from '../components/DiceHistory';
 import DiceRoller from '../components/DiceRoller';
+
+const animationDuration = 900
 
 function MainScreen() {
     const [attackCurrentNumber, setAttackCurrentNumber] = useState(rollDice())
@@ -10,6 +12,9 @@ function MainScreen() {
     const [winner, setWinner] = useState("")
     const [attackHistory, setAttackHistory] = useState([])
     const [defenseHistory, setDefenseHistory] = useState([])
+    const [attackPoints, setAttackPoints] = useState(0)
+    const [defensePoints, setDefensePoints] = useState(0)
+    const [animate, setAnimate] = useState(false)
     const attackArmy = 3
     const defenseArmy = 3
 
@@ -30,8 +35,9 @@ function MainScreen() {
     }, [whoPlays])
 
     function getWinner() {
-        const copyOfAttackHistory = attackHistory.copyWithin(0, attackHistory.length)
-        const copyOfDefenseHistory = defenseHistory.copyWithin(0, defenseHistory.length)
+        //Make a copy so it does not change the state
+        const copyOfAttackHistory = [...attackHistory]
+        const copyOfDefenseHistory = [...defenseHistory]
         copyOfAttackHistory.sort().reverse()
         copyOfDefenseHistory.sort().reverse()
 
@@ -44,7 +50,9 @@ function MainScreen() {
             else
                 defensePoints++
 
-        return attackPoints > defensePoints ? "attack" : "defense" 
+        setAttackPoints(attackPoints)
+        setDefensePoints(defensePoints)
+        return attackPoints > defensePoints ? "attack" : "defense"
     }
 
     function rollDice(): number {
@@ -52,25 +60,34 @@ function MainScreen() {
     }
 
     function rollDiceAttack() {
-        const number = rollDice()
-        setAttackCurrentNumber(number)
+        setAnimate(true)
+        setTimeout(() => {
+            const number = rollDice()
+            setAttackCurrentNumber(number)
 
-        if (attackHistory.length < attackArmy)
-            attackHistory.push(number)
+            if (attackHistory.length < attackArmy)
+                attackHistory.push(number)
 
-        if (attackHistory.length == attackArmy)
-            setWhoPlays("defense")
+            if (attackHistory.length == attackArmy)
+                setWhoPlays("defense")
+            setAnimate(false)
+        }, animationDuration)
     }
 
     function rollDiceDefense() {
-        const number = rollDice()
-        setDefenseCurrentNumber(number)
+        setAnimate(true)
+        setTimeout(() => {
+            const number = rollDice()
+            setDefenseCurrentNumber(number)
 
-        if (defenseHistory.length < defenseArmy)
-            defenseHistory.push(number)
+            if (defenseHistory.length < defenseArmy)
+                defenseHistory.push(number)
 
-        if (defenseHistory.length == defenseArmy)
-            setWhoPlays("finish")
+            if (defenseHistory.length == defenseArmy)
+                setWhoPlays("finish")
+
+            setAnimate(false)
+        }, animationDuration)
     }
 
     return (
@@ -82,22 +99,41 @@ function MainScreen() {
                 <View style={styles.container} pointerEvents={whoPlays == "attack" ? "auto" : "none"}>
                     <Text style={styles.title}>ATTACK</Text>
                     <DiceHistory history={attackHistory} />
-                    <DiceRoller
-                        currentNumber={attackCurrentNumber}
-                        onPress={whoPlays == "attack" ? rollDiceAttack : undefined}
-                    />
+                    <Text>Troops Lost: {defensePoints}</Text>
+                    {animate && whoPlays == "attack"
+                        ? <Roll>
+                            <DiceRoller
+
+                                currentNumber={attackCurrentNumber}
+                                onPress={rollDiceAttack}
+                            />
+                        </Roll>
+                        : <DiceRoller
+                            currentNumber={attackCurrentNumber}
+                            onPress={rollDiceAttack}
+                        />
+                    }
                 </View>
 
                 <View style={styles.container} pointerEvents={whoPlays == "defense" ? "auto" : "none"}>
                     <Text style={styles.title}>DEFENSE</Text>
                     <DiceHistory history={defenseHistory} />
-                    <DiceRoller
-                        currentNumber={defenseCurrentNumber}
-                        onPress={whoPlays == "defense" ? rollDiceDefense : undefined}
-                    />
+                    <Text>Troops Lost: {attackPoints}</Text>
+                    {animate && whoPlays == "defense"
+                        ? <Roll>
+                            <DiceRoller
+                                currentNumber={defenseCurrentNumber}
+                                onPress={rollDiceDefense}
+                            />
+                        </Roll>
+                        : <DiceRoller
+                            currentNumber={defenseCurrentNumber}
+                            onPress={rollDiceDefense}
+                        />
+                    }
                 </View>
             </View>
-            <Text>{winner}</Text>
+            <Text style={styles.winner}>{winner.toUpperCase()}</Text>
         </View>
     );
 }
@@ -105,6 +141,11 @@ function MainScreen() {
 const styles = StyleSheet.create({
     row: {
         flexDirection: "row",
+    },
+    winner: {
+        fontSize: 42,
+        color: "green",
+        fontWeight: "bold"
     },
     greyScale: {
         backgroundColor: "grey"
@@ -121,5 +162,39 @@ const styles = StyleSheet.create({
         fontWeight: "bold"
     }
 });
+
+const Roll = (props) => {
+    const roll = useRef(new Animated.Value(0)).current
+
+    useEffect(() => {
+        Animated.timing(
+            roll,
+            {
+                toValue: 3,
+                duration: animationDuration,
+                useNativeDriver: true
+            }
+        ).start()
+    }, [roll])
+
+    const spin = roll.interpolate({
+        inputRange: [0, 1],
+        outputRange: ["0deg", "360deg"]
+    })
+
+    return (
+        <Animated.View
+            style={{
+                ...props.style,
+                transform: [
+                    { rotateX: spin }
+                ]
+            }}
+        >
+            {props.children}
+        </Animated.View>
+    );
+}
+
 
 export default MainScreen 

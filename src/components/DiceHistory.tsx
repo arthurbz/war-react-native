@@ -3,7 +3,7 @@ import Dice from './Dice';
 
 function DiceHistory({ history }: { history: number[] }) {
     return (
-        <View>
+        <View style={styles.container}>
             <Text style={styles.text}>History</Text>
             <View style={{ flexDirection: "row" }}>
                 {history.map((number, index) => {
@@ -19,6 +19,9 @@ function DiceHistory({ history }: { history: number[] }) {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        height: 100
+    },
     text: {
         textAlign: "center",
         fontWeight: "bold"
