@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Animated, Easing, StyleSheet, View, Text } from 'react-native';
+import { Animated, StyleSheet, View, Text } from 'react-native';
 import DiceHistory from '../components/DiceHistory';
 import DiceRoller from '../components/DiceRoller';
 
